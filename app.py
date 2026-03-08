@@ -2,7 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# Initialize OpenAI client
+# Initialize OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(
@@ -14,14 +14,15 @@ st.set_page_config(
 # ---------------- SIDEBAR ----------------
 
 st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.caption("AI Legal Research Assistant")
+st.sidebar.caption("Indian Legal Research AI")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
     [
         "Legal Chat",
         "Quick Section Search",
-        "Case Law Research"
+        "Case Law Research",
+        "Exam Mode"
     ]
 )
 
@@ -37,39 +38,38 @@ law_database = st.sidebar.selectbox(
         "Transfer of Property Act",
         "Specific Relief Act",
         "Companies Act",
-        "Constitution of India"
+        "Constitution of India",
+        "Family Law (Hindu Law, Muslim Law, Divorce, Maintenance)"
     ]
 )
 
 st.sidebar.markdown("---")
 
 st.sidebar.info(
-    "Tiara helps you explore Indian laws, sections and landmark judgments."
+    "Tiara helps explore Indian law, sections, case laws and exam answers."
 )
 
 # ---------------- HEADER ----------------
 
 st.title("⚖️ Tiara Legal Assistance")
-st.caption("AI-powered Indian Legal Research Assistant")
+st.caption("AI Powered Indian Legal Research Assistant")
 
 # ---------------- QUICK SECTION SEARCH ----------------
 
 if mode == "Quick Section Search":
 
     section_query = st.text_input(
-        "Search Legal Section (Example: BNS 103 or Article 21)"
+        "Search Legal Section (Example: BNS 103, IPC 420, Article 21)"
     )
 
     if section_query:
 
         with st.spinner("Searching legal section..."):
 
-            system_prompt = f"""
+            system_prompt = """
 You are an expert Indian legal assistant.
 
-Explain the section clearly.
-
-Structure the answer as:
+Explain the section clearly using this format:
 
 Section Name
 Act Name
@@ -90,7 +90,7 @@ Example Case Law
 
 # ---------------- LEGAL CHAT ----------------
 
-if mode == "Legal Chat":
+elif mode == "Legal Chat":
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -99,7 +99,7 @@ if mode == "Legal Chat":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    prompt = st.chat_input("Ask a legal question about Indian law...")
+    prompt = st.chat_input("Ask any Indian law question")
 
     if prompt:
 
@@ -113,7 +113,7 @@ You are Tiara, an expert Indian legal research assistant.
 
 Law Database Selected: {law_database}
 
-Answer using this format:
+Answer using this structure:
 
 Relevant Law
 Section Reference
@@ -141,11 +141,9 @@ Practical Meaning
 
 # ---------------- CASE LAW RESEARCH ----------------
 
-if mode == "Case Law Research":
+elif mode == "Case Law Research":
 
-    case_query = st.text_input(
-        "Search case law or legal principle"
-    )
+    case_query = st.text_input("Search case law or legal principle")
 
     if case_query:
 
@@ -168,6 +166,53 @@ Summary
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": case_query}
+                ]
+            )
+
+            st.write(response.choices[0].message.content)
+
+# ---------------- EXAM MODE ----------------
+
+elif mode == "Exam Mode":
+
+    marks = st.selectbox(
+        "Select Answer Length",
+        [
+            "2 Marks",
+            "5 Marks",
+            "10 Marks"
+        ]
+    )
+
+    exam_question = st.text_input("Enter Law Exam Question")
+
+    if exam_question:
+
+        with st.spinner("Preparing exam answer..."):
+
+            system_prompt = f"""
+You are an Indian law professor.
+
+Answer the question for a law exam.
+
+Answer length: {marks}
+
+Structure the answer like this:
+
+Definition
+Legal Provision
+Relevant Section
+Case Law (if applicable)
+Conclusion
+
+Keep it appropriate for {marks} answer writing in law exams.
+"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": exam_question}
                 ]
             )
 
