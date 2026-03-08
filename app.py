@@ -1,7 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import os
-import pdfplumber
+import re
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -11,9 +11,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# Sidebar
+# ---------------- SIDEBAR ----------------
+
 st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.write("AI Legal Advisor for Indian Law")
+st.sidebar.caption("Indian Legal Research AI")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
@@ -21,97 +22,124 @@ mode = st.sidebar.selectbox(
         "Legal Chat",
         "Bare Act Explanation",
         "Case Law Research",
-        "Legal Advice",
-        "Explain Legal Document"
+        "Quick Section Search"
     ]
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info(
-    "Tiara helps you understand Indian law with sections, case laws and explanations."
+
+law_database = st.sidebar.selectbox(
+    "Select Law Database",
+    [
+        "Indian Penal Code (IPC)",
+        "Code of Criminal Procedure (CrPC)",
+        "Indian Contract Act",
+        "Indian Evidence Act",
+        "Constitution of India"
+    ]
 )
 
-# Main title
-st.title("⚖️ Tiara Legal Assistance 2.0")
+st.sidebar.markdown("---")
+
+st.sidebar.info(
+    "Tiara helps you explore Indian laws, sections and landmark judgments."
+)
+
+# ---------------- HEADER ----------------
+
+st.title("⚖️ Tiara Legal Assistance")
 st.caption("AI-powered Indian Legal Research Assistant")
 
-# Upload PDF
-uploaded_file = None
-if mode == "Explain Legal Document":
-    uploaded_file = st.file_uploader("Upload Legal Document", type=["pdf"])
+# ---------------- QUICK SECTION SEARCH ----------------
 
-def read_pdf(file):
-    text = ""
-    with pdfplumber.open(file) as pdf:
-        for page in pdf.pages:
-            text += page.extract_text() + "\n"
-    return text
+if mode == "Quick Section Search":
 
-# Chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+    section_query = st.text_input(
+        "Search Section (Example: IPC 420 or Article 21)"
+    )
 
-# Display chat
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    if section_query:
 
-prompt = st.chat_input("Ask a legal question about Indian law...")
+        system_prompt = f"""
+You are an Indian legal expert.
 
-if prompt:
+The user is searching for a legal section.
 
-    st.session_state.messages.append({"role": "user", "content": prompt})
+Explain clearly with this structure:
 
-    with st.chat_message("user"):
-        st.markdown(prompt)
+Section Name
+Law Act
+Explanation
+Punishment / Legal Effect
+Example Case Law
+"""
 
-    document_text = ""
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": section_query}
+            ]
+        )
 
-    if uploaded_file:
-        document_text = read_pdf(uploaded_file)
+        st.write(response.choices[0].message.content)
 
-    system_prompt = f"""
-You are Tiara, an expert Indian legal assistant.
+# ---------------- NORMAL LEGAL CHAT ----------------
+
+if mode != "Quick Section Search":
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    prompt = st.chat_input("Ask a legal question about Indian law")
+
+    if prompt:
+
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        system_prompt = f"""
+You are Tiara, an expert Indian legal research assistant.
 
 Mode: {mode}
 
 Always answer using this structure:
 
-### Definition
-Explain the legal concept.
+### Relevant Law
+Mention the act.
 
-### Relevant Section
-Mention Indian law sections.
+### Section Reference
+Mention section numbers.
 
 ### Explanation
-Explain clearly.
+Explain in simple language.
 
 ### Landmark Case Law
-Mention important case law.
+Mention famous case law.
 
-### Conclusion
-Give a short summary.
+### Practical Meaning
+Explain what it means in real life.
 """
 
-    user_input = prompt
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *st.session_state.messages
+            ]
+        )
 
-    if document_text:
-        user_input += f"\n\nDocument Content:\n{document_text}"
+        answer = response.choices[0].message.content
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            *st.session_state.messages,
-            {"role": "user", "content": user_input}
-        ]
-    )
+        with st.chat_message("assistant"):
+            st.markdown(answer)
 
-    answer = response.choices[0].message.content
-
-    with st.chat_message("assistant"):
-        st.markdown(answer)
-
-    st.session_state.messages.append(
-        {"role": "assistant", "content": answer}
-    )
+        st.session_state.messages.append(
+            {"role": "assistant", "content": answer}
+        )
