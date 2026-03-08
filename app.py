@@ -1,84 +1,78 @@
 import streamlit as st
-import os
 from openai import OpenAI
+import os
 
-# Load API key from environment variable
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Load API Key from Streamlit secrets
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Page configuration
+# Page setup
 st.set_page_config(
     page_title="Tiara Legal Assistance 2.0",
     page_icon="⚖️",
+    layout="centered"
 )
 
-# Title
 st.title("⚖️ Tiara Legal Assistance 2.0")
 st.write("AI-powered Indian Legal Advisor")
 
-# Legal Mode Selector
+# Legal modes
 mode = st.selectbox(
     "Select Legal Mode",
     [
         "Bare Act Explanation",
-        "General Legal Advice",
-        "Case Law Summary"
+        "Case Law Research",
+        "Legal Advice",
+        "Exam Answer Mode"
     ]
 )
 
-# Chat history
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages
-for message in st.session_state.messages:
-    st.chat_message(message["role"]).write(message["content"])
+# Display previous chat
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
 
 # Chat input
-user_input = st.chat_input("Ask a legal question about Indian law...")
+prompt = st.chat_input("Ask a legal question about Indian law...")
 
-if user_input:
-
+if prompt:
     # Show user message
-    st.chat_message("user").write(user_input)
+    st.chat_message("user").write(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    st.session_state.messages.append({
-        "role": "user",
-        "content": user_input
-    })
+    system_prompt = f"""
+You are an expert Indian legal assistant.
 
-    try:
+Mode: {mode}
 
-        system_prompt = f"""
-You are Tiara Legal Assistance 2.0.
+Always answer using this format:
 
-You specialize in Indian law.
+1. Definition
+2. Relevant Section
+3. Explanation
+4. Landmark Case Law
+5. Conclusion
 
-Mode selected: {mode}
-
-Provide answers in:
-• Simple English
-• Point wise explanation
-• Mention relevant legal sections
-• Mention landmark case laws if applicable
+Use simple English and Indian legal references.
 """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_input}
-            ]
-        )
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            *st.session_state.messages
+        ]
+    )
 
-        answer = response.choices[0].message.content
+    answer = response.choices[0].message.content
 
-        # Display AI response
-        st.chat_message("assistant").write(answer)
+    # Show AI message
+    with st.chat_message("assistant"):
+        st.write(answer)
 
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": answer
-        })
-
-    except Exception as e:
-        st.error(f"Error: {e}")
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer}
+    )
