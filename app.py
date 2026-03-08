@@ -1,8 +1,8 @@
 import streamlit as st
 from openai import OpenAI
 import os
-import re
 
+# Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(
@@ -14,15 +14,14 @@ st.set_page_config(
 # ---------------- SIDEBAR ----------------
 
 st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.caption("Indian Legal Research AI")
+st.sidebar.caption("AI Legal Research Assistant")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
     [
         "Legal Chat",
-        "Bare Act Explanation",
-        "Case Law Research",
-        "Quick Section Search"
+        "Quick Section Search",
+        "Case Law Research"
     ]
 )
 
@@ -31,10 +30,13 @@ st.sidebar.markdown("---")
 law_database = st.sidebar.selectbox(
     "Select Law Database",
     [
-        "Indian Penal Code (IPC)",
-        "Code of Criminal Procedure (CrPC)",
+        "Bharatiya Nyaya Sanhita (BNS)",
+        "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
+        "Bharatiya Sakshya Adhiniyam (BSA)",
         "Indian Contract Act",
-        "Indian Evidence Act",
+        "Transfer of Property Act",
+        "Specific Relief Act",
+        "Companies Act",
         "Constitution of India"
     ]
 )
@@ -55,38 +57,40 @@ st.caption("AI-powered Indian Legal Research Assistant")
 if mode == "Quick Section Search":
 
     section_query = st.text_input(
-        "Search Section (Example: IPC 420 or Article 21)"
+        "Search Legal Section (Example: BNS 103 or Article 21)"
     )
 
     if section_query:
 
-        system_prompt = f"""
-You are an Indian legal expert.
+        with st.spinner("Searching legal section..."):
 
-The user is searching for a legal section.
+            system_prompt = f"""
+You are an expert Indian legal assistant.
 
-Explain clearly with this structure:
+Explain the section clearly.
+
+Structure the answer as:
 
 Section Name
-Law Act
+Act Name
 Explanation
 Punishment / Legal Effect
 Example Case Law
 """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": section_query}
-            ]
-        )
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": section_query}
+                ]
+            )
 
-        st.write(response.choices[0].message.content)
+            st.write(response.choices[0].message.content)
 
-# ---------------- NORMAL LEGAL CHAT ----------------
+# ---------------- LEGAL CHAT ----------------
 
-if mode != "Quick Section Search":
+if mode == "Legal Chat":
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -95,7 +99,7 @@ if mode != "Quick Section Search":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    prompt = st.chat_input("Ask a legal question about Indian law")
+    prompt = st.chat_input("Ask a legal question about Indian law...")
 
     if prompt:
 
@@ -107,24 +111,15 @@ if mode != "Quick Section Search":
         system_prompt = f"""
 You are Tiara, an expert Indian legal research assistant.
 
-Mode: {mode}
+Law Database Selected: {law_database}
 
-Always answer using this structure:
+Answer using this format:
 
-### Relevant Law
-Mention the act.
-
-### Section Reference
-Mention section numbers.
-
-### Explanation
-Explain in simple language.
-
-### Landmark Case Law
-Mention famous case law.
-
-### Practical Meaning
-Explain what it means in real life.
+Relevant Law
+Section Reference
+Explanation
+Landmark Case Law
+Practical Meaning
 """
 
         response = client.chat.completions.create(
@@ -143,3 +138,37 @@ Explain what it means in real life.
         st.session_state.messages.append(
             {"role": "assistant", "content": answer}
         )
+
+# ---------------- CASE LAW RESEARCH ----------------
+
+if mode == "Case Law Research":
+
+    case_query = st.text_input(
+        "Search case law or legal principle"
+    )
+
+    if case_query:
+
+        with st.spinner("Searching case law..."):
+
+            system_prompt = """
+You are an Indian legal research assistant.
+
+Provide:
+
+Case Name
+Court
+Year
+Legal Principle
+Summary
+"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": case_query}
+                ]
+            )
+
+            st.write(response.choices[0].message.content)
