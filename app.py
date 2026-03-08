@@ -6,29 +6,39 @@ import pdfplumber
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 st.set_page_config(
-    page_title="Tiara Legal Assistance 2.0",
+    page_title="Tiara Legal Assistance",
     page_icon="⚖️",
-    layout="centered"
+    layout="wide"
 )
 
-st.title("⚖️ Tiara Legal Assistance 2.0")
-st.write("AI-powered Indian Legal Advisor")
+# Sidebar
+st.sidebar.title("⚖️ Tiara Legal Assistance")
+st.sidebar.write("AI Legal Advisor for Indian Law")
 
-mode = st.selectbox(
-    "Select Legal Mode",
+mode = st.sidebar.selectbox(
+    "Choose Mode",
     [
+        "Legal Chat",
         "Bare Act Explanation",
         "Case Law Research",
         "Legal Advice",
-        "Exam Answer Mode",
         "Explain Legal Document"
     ]
 )
 
-# Upload PDF if document mode
+st.sidebar.markdown("---")
+st.sidebar.info(
+    "Tiara helps you understand Indian law with sections, case laws and explanations."
+)
+
+# Main title
+st.title("⚖️ Tiara Legal Assistance 2.0")
+st.caption("AI-powered Indian Legal Research Assistant")
+
+# Upload PDF
 uploaded_file = None
 if mode == "Explain Legal Document":
-    uploaded_file = st.file_uploader("Upload Legal PDF", type=["pdf"])
+    uploaded_file = st.file_uploader("Upload Legal Document", type=["pdf"])
 
 def read_pdf(file):
     text = ""
@@ -41,15 +51,19 @@ def read_pdf(file):
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Display chat
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+        st.markdown(msg["content"])
 
 prompt = st.chat_input("Ask a legal question about Indian law...")
 
 if prompt:
-    st.chat_message("user").write(prompt)
+
     st.session_state.messages.append({"role": "user", "content": prompt})
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
     document_text = ""
 
@@ -57,19 +71,26 @@ if prompt:
         document_text = read_pdf(uploaded_file)
 
     system_prompt = f"""
-You are an expert Indian legal assistant.
+You are Tiara, an expert Indian legal assistant.
 
 Mode: {mode}
 
-Always answer in this format:
+Always answer using this structure:
 
-1. Definition
-2. Relevant Section
-3. Explanation
-4. Landmark Case Law
-5. Conclusion
+### Definition
+Explain the legal concept.
 
-If a document is provided, analyze and explain it clearly.
+### Relevant Section
+Mention Indian law sections.
+
+### Explanation
+Explain clearly.
+
+### Landmark Case Law
+Mention important case law.
+
+### Conclusion
+Give a short summary.
 """
 
     user_input = prompt
@@ -89,7 +110,7 @@ If a document is provided, analyze and explain it clearly.
     answer = response.choices[0].message.content
 
     with st.chat_message("assistant"):
-        st.write(answer)
+        st.markdown(answer)
 
     st.session_state.messages.append(
         {"role": "assistant", "content": answer}
