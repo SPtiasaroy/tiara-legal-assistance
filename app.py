@@ -2,7 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# OpenAI client
+# OpenAI Client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Page configuration
@@ -12,47 +12,94 @@ st.set_page_config(
     layout="wide"
 )
 
-# -------------------------------------------------
-# HIDE STREAMLIT MENU / GITHUB / FOOTER
-# -------------------------------------------------
+# --------------------------------------------------
+# PROFESSIONAL UI + HIDE STREAMLIT ELEMENTS
+# --------------------------------------------------
 
 st.markdown("""
 <style>
 
+/* Hide Streamlit default UI */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+[data-testid="stToolbar"] {display: none;}
+[data-testid="stDecoration"] {display: none;}
+[data-testid="stStatusWidget"] {display: none;}
 
+/* App background */
 .stApp {
 background: linear-gradient(135deg,#0f172a,#1e293b);
 color: white;
+font-family: "Segoe UI", sans-serif;
 }
 
+/* Title styling */
 .title {
 font-size:42px;
 font-weight:700;
+margin-bottom:5px;
 }
 
+/* Subtitle */
 .subtitle {
 font-size:18px;
 opacity:0.8;
+margin-bottom:25px;
 }
 
-.chat-box {
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+background-color:#020617;
+border-right:1px solid #1e293b;
+}
+
+/* Input styling */
+input, textarea {
+background-color:#1e293b !important;
+color:white !important;
+border-radius:8px !important;
+}
+
+/* Buttons */
+button {
+border-radius:8px !important;
+}
+
+/* Chat container */
+[data-testid="stChatMessage"] {
 background-color:#1e293b;
-padding:20px;
+padding:10px;
 border-radius:10px;
+margin-bottom:10px;
+}
+
+/* Responsive design (tablet/mobile) */
+@media (max-width: 768px) {
+
+.title {
+font-size:28px;
+}
+
+.subtitle {
+font-size:14px;
+}
+
+section[data-testid="stSidebar"] {
+width:100% !important;
+}
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------
+# --------------------------------------------------
 # SIDEBAR
-# -------------------------------------------------
+# --------------------------------------------------
 
 st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.caption("AI Legal Advisor for Indian Law")
+st.sidebar.caption("AI Legal Research Platform")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
@@ -85,7 +132,7 @@ st.sidebar.markdown("---")
 
 st.sidebar.info(
 """
-Tiara helps you understand Indian law with:
+Tiara helps explore Indian law with:
 
 • Bare Act explanations  
 • Section analysis  
@@ -94,22 +141,24 @@ Tiara helps you understand Indian law with:
 """
 )
 
-# -------------------------------------------------
+# --------------------------------------------------
 # HEADER
-# -------------------------------------------------
+# --------------------------------------------------
 
-st.markdown('<p class="title">⚖️ Tiara Legal Assistance 2.0</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">AI-powered Indian Legal Research Assistant</p>', unsafe_allow_html=True)
+st.markdown('<div class="title">⚖️ Tiara Legal Assistance 2.0</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">AI-powered Indian Legal Research Assistant</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# -------------------------------------------------
+# --------------------------------------------------
 # QUICK SECTION SEARCH
-# -------------------------------------------------
+# --------------------------------------------------
 
 if mode == "Quick Section Search":
 
-    query = st.text_input("Search Legal Section (Example: BNS 103, IPC 420, Article 21)")
+    query = st.text_input(
+        "Search Legal Section (Example: BNS 103, IPC 420, Article 21)"
+    )
 
     if query:
 
@@ -118,7 +167,7 @@ if mode == "Quick Section Search":
             system_prompt = """
 You are an expert Indian legal assistant.
 
-Explain the legal provision clearly using this format:
+Explain the legal provision clearly using:
 
 Section Name
 Act Name
@@ -130,16 +179,16 @@ Example Case Law
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": query}
+                    {"role":"system","content":system_prompt},
+                    {"role":"user","content":query}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# -------------------------------------------------
+# --------------------------------------------------
 # LEGAL CHAT
-# -------------------------------------------------
+# --------------------------------------------------
 
 elif mode == "Legal Chat":
 
@@ -154,7 +203,7 @@ elif mode == "Legal Chat":
 
     if prompt:
 
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role":"user","content":prompt})
 
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -162,9 +211,9 @@ elif mode == "Legal Chat":
         system_prompt = f"""
 You are Tiara, an expert Indian legal research assistant.
 
-Law Database Selected: {law_database}
+Law database selected: {law_database}
 
-Structure answers as:
+Structure answers with:
 
 Relevant Law
 Section Reference
@@ -176,7 +225,7 @@ Practical Meaning
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role":"system","content":system_prompt},
                 *st.session_state.messages
             ]
         )
@@ -187,12 +236,12 @@ Practical Meaning
             st.markdown(answer)
 
         st.session_state.messages.append(
-            {"role": "assistant", "content": answer}
+            {"role":"assistant","content":answer}
         )
 
-# -------------------------------------------------
+# --------------------------------------------------
 # CASE LAW RESEARCH
-# -------------------------------------------------
+# --------------------------------------------------
 
 elif mode == "Case Law Research":
 
@@ -217,16 +266,16 @@ Summary
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": case_query}
+                    {"role":"system","content":system_prompt},
+                    {"role":"user","content":case_query}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# -------------------------------------------------
+# --------------------------------------------------
 # EXAM MODE
-# -------------------------------------------------
+# --------------------------------------------------
 
 elif mode == "Exam Mode":
 
@@ -239,9 +288,9 @@ elif mode == "Exam Mode":
         ]
     )
 
-    exam_question = st.text_input("Enter Law Exam Question")
+    question = st.text_input("Enter Law Exam Question")
 
-    if exam_question:
+    if question:
 
         with st.spinner("Preparing exam answer..."):
 
@@ -252,22 +301,20 @@ Answer the question for a law exam.
 
 Answer length: {marks}
 
-Structure answer as:
+Structure:
 
 Definition
 Legal Provision
 Relevant Section
-Case Law (if applicable)
+Case Law
 Conclusion
-
-Make it suitable for a {marks} exam answer.
 """
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": exam_question}
+                    {"role":"system","content":system_prompt},
+                    {"role":"user","content":question}
                 ]
             )
 
