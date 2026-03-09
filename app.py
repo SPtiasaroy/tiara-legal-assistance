@@ -2,19 +2,57 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# Initialize OpenAI
+# OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Page configuration
 st.set_page_config(
     page_title="Tiara Legal Assistance",
     page_icon="⚖️",
     layout="wide"
 )
 
-# ---------------- SIDEBAR ----------------
+# -------------------------------------------------
+# HIDE STREAMLIT MENU / GITHUB / FOOTER
+# -------------------------------------------------
+
+st.markdown("""
+<style>
+
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+.stApp {
+background: linear-gradient(135deg,#0f172a,#1e293b);
+color: white;
+}
+
+.title {
+font-size:42px;
+font-weight:700;
+}
+
+.subtitle {
+font-size:18px;
+opacity:0.8;
+}
+
+.chat-box {
+background-color:#1e293b;
+padding:20px;
+border-radius:10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------------------------
+# SIDEBAR
+# -------------------------------------------------
 
 st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.caption("Indian Legal Research AI")
+st.sidebar.caption("AI Legal Advisor for Indian Law")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
@@ -46,30 +84,41 @@ law_database = st.sidebar.selectbox(
 st.sidebar.markdown("---")
 
 st.sidebar.info(
-    "Tiara helps explore Indian law, sections, case laws and exam answers."
+"""
+Tiara helps you understand Indian law with:
+
+• Bare Act explanations  
+• Section analysis  
+• Case law summaries  
+• Exam-ready answers
+"""
 )
 
-# ---------------- HEADER ----------------
+# -------------------------------------------------
+# HEADER
+# -------------------------------------------------
 
-st.title("⚖️ Tiara Legal Assistance")
-st.caption("AI Powered Indian Legal Research Assistant")
+st.markdown('<p class="title">⚖️ Tiara Legal Assistance 2.0</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">AI-powered Indian Legal Research Assistant</p>', unsafe_allow_html=True)
 
-# ---------------- QUICK SECTION SEARCH ----------------
+st.markdown("---")
+
+# -------------------------------------------------
+# QUICK SECTION SEARCH
+# -------------------------------------------------
 
 if mode == "Quick Section Search":
 
-    section_query = st.text_input(
-        "Search Legal Section (Example: BNS 103, IPC 420, Article 21)"
-    )
+    query = st.text_input("Search Legal Section (Example: BNS 103, IPC 420, Article 21)")
 
-    if section_query:
+    if query:
 
         with st.spinner("Searching legal section..."):
 
             system_prompt = """
 You are an expert Indian legal assistant.
 
-Explain the section clearly using this format:
+Explain the legal provision clearly using this format:
 
 Section Name
 Act Name
@@ -82,13 +131,15 @@ Example Case Law
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": section_query}
+                    {"role": "user", "content": query}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# ---------------- LEGAL CHAT ----------------
+# -------------------------------------------------
+# LEGAL CHAT
+# -------------------------------------------------
 
 elif mode == "Legal Chat":
 
@@ -99,7 +150,7 @@ elif mode == "Legal Chat":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    prompt = st.chat_input("Ask any Indian law question")
+    prompt = st.chat_input("Ask a legal question about Indian law...")
 
     if prompt:
 
@@ -113,7 +164,7 @@ You are Tiara, an expert Indian legal research assistant.
 
 Law Database Selected: {law_database}
 
-Answer using this structure:
+Structure answers as:
 
 Relevant Law
 Section Reference
@@ -139,7 +190,9 @@ Practical Meaning
             {"role": "assistant", "content": answer}
         )
 
-# ---------------- CASE LAW RESEARCH ----------------
+# -------------------------------------------------
+# CASE LAW RESEARCH
+# -------------------------------------------------
 
 elif mode == "Case Law Research":
 
@@ -171,7 +224,9 @@ Summary
 
             st.write(response.choices[0].message.content)
 
-# ---------------- EXAM MODE ----------------
+# -------------------------------------------------
+# EXAM MODE
+# -------------------------------------------------
 
 elif mode == "Exam Mode":
 
@@ -197,7 +252,7 @@ Answer the question for a law exam.
 
 Answer length: {marks}
 
-Structure the answer like this:
+Structure answer as:
 
 Definition
 Legal Provision
@@ -205,7 +260,7 @@ Relevant Section
 Case Law (if applicable)
 Conclusion
 
-Keep it appropriate for {marks} answer writing in law exams.
+Make it suitable for a {marks} exam answer.
 """
 
             response = client.chat.completions.create(
