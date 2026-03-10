@@ -2,7 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# OpenAI Client
+# Initialize OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Page configuration
@@ -12,81 +12,75 @@ st.set_page_config(
     layout="wide"
 )
 
-# --------------------------------------------------
-# PROFESSIONAL UI + HIDE STREAMLIT ELEMENTS
-# --------------------------------------------------
+# ---------------------------------------------------
+# UI STYLE (Balanced version)
+# ---------------------------------------------------
 
 st.markdown("""
 <style>
 
-/* Hide Streamlit default UI */
+/* Hide only Streamlit menu + footer */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
-[data-testid="stToolbar"] {display: none;}
-[data-testid="stDecoration"] {display: none;}
-[data-testid="stStatusWidget"] {display: none;}
 
-/* App background */
+/* Hide GitHub link */
+a[href*="github"] {
+display: none !important;
+}
+
+/* Background styling */
 .stApp {
 background: linear-gradient(135deg,#0f172a,#1e293b);
 color: white;
 font-family: "Segoe UI", sans-serif;
 }
 
-/* Title styling */
+/* Page spacing */
+.block-container {
+padding-top: 2rem;
+padding-bottom: 2rem;
+padding-left: 2rem;
+padding-right: 2rem;
+}
+
+/* Title style */
 .title {
-font-size:42px;
-font-weight:700;
-margin-bottom:5px;
+font-size: 38px;
+font-weight: 700;
+margin-bottom: 10px;
 }
 
 /* Subtitle */
 .subtitle {
-font-size:18px;
-opacity:0.8;
-margin-bottom:25px;
+font-size: 18px;
+opacity: 0.85;
+margin-bottom: 20px;
 }
 
-/* Sidebar styling */
-section[data-testid="stSidebar"] {
-background-color:#020617;
-border-right:1px solid #1e293b;
-}
-
-/* Input styling */
-input, textarea {
-background-color:#1e293b !important;
-color:white !important;
-border-radius:8px !important;
-}
-
-/* Buttons */
-button {
-border-radius:8px !important;
-}
-
-/* Chat container */
+/* Chat styling */
 [data-testid="stChatMessage"] {
-background-color:#1e293b;
-padding:10px;
-border-radius:10px;
-margin-bottom:10px;
+background: #1e293b;
+padding: 12px;
+border-radius: 10px;
+margin-bottom: 10px;
 }
 
-/* Responsive design (tablet/mobile) */
-@media (max-width: 768px) {
+/* Inputs */
+input, textarea {
+background: #1e293b !important;
+color: white !important;
+border-radius: 10px !important;
+}
+
+/* Responsive layout */
+@media (max-width:768px){
 
 .title {
-font-size:28px;
+font-size: 28px;
 }
 
 .subtitle {
-font-size:14px;
-}
-
-section[data-testid="stSidebar"] {
-width:100% !important;
+font-size: 14px;
 }
 
 }
@@ -94,9 +88,9 @@ width:100% !important;
 </style>
 """, unsafe_allow_html=True)
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # SIDEBAR
-# --------------------------------------------------
+# ---------------------------------------------------
 
 st.sidebar.title("⚖️ Tiara Legal Assistance")
 st.sidebar.caption("AI Legal Research Platform")
@@ -141,18 +135,18 @@ Tiara helps explore Indian law with:
 """
 )
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # HEADER
-# --------------------------------------------------
+# ---------------------------------------------------
 
 st.markdown('<div class="title">⚖️ Tiara Legal Assistance 2.0</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">AI-powered Indian Legal Research Assistant</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # QUICK SECTION SEARCH
-# --------------------------------------------------
+# ---------------------------------------------------
 
 if mode == "Quick Section Search":
 
@@ -186,9 +180,9 @@ Example Case Law
 
             st.write(response.choices[0].message.content)
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # LEGAL CHAT
-# --------------------------------------------------
+# ---------------------------------------------------
 
 elif mode == "Legal Chat":
 
@@ -239,9 +233,9 @@ Practical Meaning
             {"role":"assistant","content":answer}
         )
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # CASE LAW RESEARCH
-# --------------------------------------------------
+# ---------------------------------------------------
 
 elif mode == "Case Law Research":
 
@@ -273,9 +267,9 @@ Summary
 
             st.write(response.choices[0].message.content)
 
-# --------------------------------------------------
+# ---------------------------------------------------
 # EXAM MODE
-# --------------------------------------------------
+# ---------------------------------------------------
 
 elif mode == "Exam Mode":
 
