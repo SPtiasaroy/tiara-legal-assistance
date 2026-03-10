@@ -2,113 +2,84 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# Initialize OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Page configuration
 st.set_page_config(
     page_title="Tiara Legal Assistance",
     page_icon="⚖️",
     layout="wide"
 )
 
-# ---------------------------------------------------
-# UI STYLE (Balanced version)
-# ---------------------------------------------------
+# -------------------------------
+# UI STYLE
+# -------------------------------
 
 st.markdown("""
 <style>
 
-/* Hide only Streamlit menu + footer */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-
-/* Hide GitHub link */
-a[href*="github"] {
-display: none !important;
-}
-
-/* Background styling */
-.stApp {
-background: linear-gradient(135deg,#0f172a,#1e293b);
-color: white;
+.stApp{
+background:#f7f7f8;
 font-family: "Segoe UI", sans-serif;
 }
 
-/* Page spacing */
-.block-container {
-padding-top: 2rem;
-padding-bottom: 2rem;
-padding-left: 2rem;
-padding-right: 2rem;
+.block-container{
+max-width:1100px;
+padding-top:2rem;
 }
 
-/* Title style */
-.title {
-font-size: 38px;
-font-weight: 700;
-margin-bottom: 10px;
+.title{
+font-size:44px;
+font-weight:700;
+text-align:center;
+color:#111827;
 }
 
-/* Subtitle */
-.subtitle {
-font-size: 18px;
-opacity: 0.85;
-margin-bottom: 20px;
+.subtitle{
+text-align:center;
+color:#6b7280;
+margin-bottom:30px;
 }
 
-/* Chat styling */
-[data-testid="stChatMessage"] {
-background: #1e293b;
-padding: 12px;
-border-radius: 10px;
-margin-bottom: 10px;
+.searchbox input{
+height:55px;
+font-size:18px;
+border-radius:12px;
+border:1px solid #e5e7eb;
 }
 
-/* Inputs */
-input, textarea {
-background: #1e293b !important;
-color: white !important;
-border-radius: 10px !important;
+[data-testid="stChatMessage"]{
+background:white;
+border:1px solid #e5e7eb;
+padding:14px;
+border-radius:12px;
 }
 
-/* Responsive layout */
-@media (max-width:768px){
-
-.title {
-font-size: 28px;
-}
-
-.subtitle {
-font-size: 14px;
-}
-
+section[data-testid="stSidebar"]{
+background:white;
+border-right:1px solid #e5e7eb;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
+# -------------------------------
 # SIDEBAR
-# ---------------------------------------------------
+# -------------------------------
 
-st.sidebar.title("⚖️ Tiara Legal Assistance")
-st.sidebar.caption("AI Legal Research Platform")
+st.sidebar.title("⚖️ Tiara Legal")
 
 mode = st.sidebar.selectbox(
     "Choose Mode",
     [
+        "Legal Search",
         "Legal Chat",
-        "Quick Section Search",
         "Case Law Research",
         "Exam Mode"
     ]
 )
 
-st.sidebar.markdown("---")
-
 law_database = st.sidebar.selectbox(
-    "Select Law Database",
+    "Law Database",
     [
         "Bharatiya Nyaya Sanhita (BNS)",
         "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
@@ -118,71 +89,71 @@ law_database = st.sidebar.selectbox(
         "Specific Relief Act",
         "Companies Act",
         "Constitution of India",
-        "Family Law (Hindu Law, Muslim Law, Divorce, Maintenance)"
+        "Family Law"
     ]
 )
 
-st.sidebar.markdown("---")
-
 st.sidebar.info(
 """
-Tiara helps explore Indian law with:
+Tiara helps you research Indian law:
 
-• Bare Act explanations  
-• Section analysis  
-• Case law summaries  
-• Exam-ready answers
+• Bare Acts  
+• Sections  
+• Case law  
+• Exam answers
 """
 )
 
-# ---------------------------------------------------
+# -------------------------------
 # HEADER
-# ---------------------------------------------------
+# -------------------------------
 
-st.markdown('<div class="title">⚖️ Tiara Legal Assistance 2.0</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">AI-powered Indian Legal Research Assistant</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">⚖️ Tiara Legal Assistance</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">AI Powered Indian Legal Research</div>', unsafe_allow_html=True)
 
-st.markdown("---")
+# -------------------------------
+# LEGAL SEARCH BAR
+# -------------------------------
 
-# ---------------------------------------------------
-# QUICK SECTION SEARCH
-# ---------------------------------------------------
+if mode == "Legal Search":
 
-if mode == "Quick Section Search":
-
-    query = st.text_input(
-        "Search Legal Section (Example: BNS 103, IPC 420, Article 21)"
+    search = st.text_input(
+        "",
+        placeholder="Search Indian law (example: BNS 103, Article 21, IPC 420 cheating)",
+        label_visibility="collapsed"
     )
 
-    if query:
+    if search:
 
-        with st.spinner("Searching legal section..."):
+        with st.spinner("Researching Indian law..."):
 
-            system_prompt = """
-You are an expert Indian legal assistant.
+            system_prompt = f"""
+You are an expert Indian legal research assistant.
 
-Explain the legal provision clearly using:
+Database selected: {law_database}
 
-Section Name
-Act Name
+Provide answer in this format:
+
+Relevant Law
+Section Reference
 Explanation
-Punishment / Legal Effect
-Example Case Law
+Landmark Case Law
+Practical Meaning
 """
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role":"system","content":system_prompt},
-                    {"role":"user","content":query}
+                    {"role":"user","content":search}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# ---------------------------------------------------
+# -------------------------------
 # LEGAL CHAT
-# ---------------------------------------------------
+# -------------------------------
 
 elif mode == "Legal Chat":
 
@@ -193,7 +164,7 @@ elif mode == "Legal Chat":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    prompt = st.chat_input("Ask a legal question about Indian law...")
+    prompt = st.chat_input("Ask a legal question")
 
     if prompt:
 
@@ -203,17 +174,11 @@ elif mode == "Legal Chat":
             st.markdown(prompt)
 
         system_prompt = f"""
-You are Tiara, an expert Indian legal research assistant.
+You are Tiara, an Indian legal research assistant.
 
-Law database selected: {law_database}
+Database: {law_database}
 
-Structure answers with:
-
-Relevant Law
-Section Reference
-Explanation
-Landmark Case Law
-Practical Meaning
+Explain clearly using sections and case law.
 """
 
         response = client.chat.completions.create(
@@ -233,74 +198,62 @@ Practical Meaning
             {"role":"assistant","content":answer}
         )
 
-# ---------------------------------------------------
-# CASE LAW RESEARCH
-# ---------------------------------------------------
+# -------------------------------
+# CASE LAW SEARCH
+# -------------------------------
 
 elif mode == "Case Law Research":
 
-    case_query = st.text_input("Search case law or legal principle")
+    case = st.text_input("Search case law")
 
-    if case_query:
+    if case:
 
-        with st.spinner("Searching case law..."):
+        with st.spinner("Finding case law..."):
 
             system_prompt = """
-You are an Indian legal research assistant.
-
 Provide:
 
 Case Name
 Court
 Year
 Legal Principle
-Summary
+Short summary
 """
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role":"system","content":system_prompt},
-                    {"role":"user","content":case_query}
+                    {"role":"user","content":case}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# ---------------------------------------------------
+# -------------------------------
 # EXAM MODE
-# ---------------------------------------------------
+# -------------------------------
 
 elif mode == "Exam Mode":
 
-    marks = st.selectbox(
-        "Select Answer Length",
-        [
-            "2 Marks",
-            "5 Marks",
-            "10 Marks"
-        ]
-    )
+    marks = st.selectbox("Answer length",["2 Marks","5 Marks","10 Marks"])
 
-    question = st.text_input("Enter Law Exam Question")
+    question = st.text_input("Law exam question")
 
     if question:
 
-        with st.spinner("Preparing exam answer..."):
+        with st.spinner("Writing answer..."):
 
             system_prompt = f"""
-You are an Indian law professor.
+Answer like a law professor.
 
-Answer the question for a law exam.
-
-Answer length: {marks}
+Length: {marks}
 
 Structure:
 
 Definition
-Legal Provision
-Relevant Section
-Case Law
+Relevant section
+Case law
 Conclusion
 """
 
