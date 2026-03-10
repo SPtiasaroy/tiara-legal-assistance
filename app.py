@@ -10,15 +10,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# -------------------------------
-# UI STYLE
-# -------------------------------
+# -------------------------
+# CLEAN UI
+# -------------------------
 
 st.markdown("""
 <style>
 
-.stApp{
-background:#f7f7f8;
+.stApp {
+background-color:#f9fafb;
 font-family: "Segoe UI", sans-serif;
 }
 
@@ -27,10 +27,9 @@ max-width:1100px;
 padding-top:2rem;
 }
 
-.title{
-font-size:44px;
-font-weight:700;
+h1{
 text-align:center;
+font-size:42px;
 color:#111827;
 }
 
@@ -40,18 +39,16 @@ color:#6b7280;
 margin-bottom:30px;
 }
 
-.searchbox input{
-height:55px;
-font-size:18px;
-border-radius:12px;
-border:1px solid #e5e7eb;
-}
-
 [data-testid="stChatMessage"]{
 background:white;
 border:1px solid #e5e7eb;
 padding:14px;
 border-radius:12px;
+}
+
+textarea, input{
+border-radius:10px !important;
+border:1px solid #e5e7eb !important;
 }
 
 section[data-testid="stSidebar"]{
@@ -62,82 +59,80 @@ border-right:1px solid #e5e7eb;
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------
+# -------------------------
 # SIDEBAR
-# -------------------------------
+# -------------------------
 
 st.sidebar.title("⚖️ Tiara Legal")
 
 mode = st.sidebar.selectbox(
-    "Choose Mode",
-    [
-        "Legal Search",
-        "Legal Chat",
-        "Case Law Research",
-        "Exam Mode"
-    ]
+"Mode",
+[
+"Legal Chat",
+"Legal Search",
+"Case Law",
+"Exam Mode"
+]
 )
 
 law_database = st.sidebar.selectbox(
-    "Law Database",
-    [
-        "Bharatiya Nyaya Sanhita (BNS)",
-        "Bharatiya Nagarik Suraksha Sanhita (BNSS)",
-        "Bharatiya Sakshya Adhiniyam (BSA)",
-        "Indian Contract Act",
-        "Transfer of Property Act",
-        "Specific Relief Act",
-        "Companies Act",
-        "Constitution of India",
-        "Family Law"
-    ]
+"Law Database",
+[
+"Bharatiya Nyaya Sanhita (BNS)",
+"Bharatiya Nagarik Suraksha Sanhita (BNSS)",
+"Bharatiya Sakshya Adhiniyam (BSA)",
+"Indian Contract Act",
+"Transfer of Property Act",
+"Specific Relief Act",
+"Companies Act",
+"Constitution of India",
+"Family Law"
+]
 )
 
 st.sidebar.info(
 """
-Tiara helps you research Indian law:
+Tiara helps research Indian law:
 
 • Bare Acts  
 • Sections  
-• Case law  
+• Case Law  
 • Exam answers
 """
 )
 
-# -------------------------------
+# -------------------------
 # HEADER
-# -------------------------------
+# -------------------------
 
-st.markdown('<div class="title">⚖️ Tiara Legal Assistance</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">AI Powered Indian Legal Research</div>', unsafe_allow_html=True)
+st.title("⚖️ Tiara Legal Assistance")
+st.markdown('<p class="subtitle">AI Powered Indian Legal Research</p>', unsafe_allow_html=True)
 
-# -------------------------------
-# LEGAL SEARCH BAR
-# -------------------------------
+st.divider()
+
+# -------------------------
+# LEGAL SEARCH
+# -------------------------
 
 if mode == "Legal Search":
 
-    search = st.text_input(
-        "",
-        placeholder="Search Indian law (example: BNS 103, Article 21, IPC 420 cheating)",
-        label_visibility="collapsed"
-    )
+    query = st.text_input("Search Indian law")
 
-    if search:
+    if query:
 
-        with st.spinner("Researching Indian law..."):
+        with st.spinner("Searching law..."):
 
             system_prompt = f"""
-You are an expert Indian legal research assistant.
+You are an Indian legal research assistant.
 
-Database selected: {law_database}
+Database: {law_database}
 
-Provide answer in this format:
+Provide:
 
 Relevant Law
-Section Reference
+Section
 Explanation
-Landmark Case Law
+Case Law
 Practical Meaning
 """
 
@@ -145,15 +140,15 @@ Practical Meaning
                 model="gpt-4o-mini",
                 messages=[
                     {"role":"system","content":system_prompt},
-                    {"role":"user","content":search}
+                    {"role":"user","content":query}
                 ]
             )
 
             st.write(response.choices[0].message.content)
 
-# -------------------------------
+# -------------------------
 # LEGAL CHAT
-# -------------------------------
+# -------------------------
 
 elif mode == "Legal Chat":
 
@@ -174,11 +169,11 @@ elif mode == "Legal Chat":
             st.markdown(prompt)
 
         system_prompt = f"""
-You are Tiara, an Indian legal research assistant.
+You are an expert Indian legal assistant.
 
 Database: {law_database}
 
-Explain clearly using sections and case law.
+Explain using sections and case law.
 """
 
         response = client.chat.completions.create(
@@ -198,17 +193,17 @@ Explain clearly using sections and case law.
             {"role":"assistant","content":answer}
         )
 
-# -------------------------------
-# CASE LAW SEARCH
-# -------------------------------
+# -------------------------
+# CASE LAW
+# -------------------------
 
-elif mode == "Case Law Research":
+elif mode == "Case Law":
 
     case = st.text_input("Search case law")
 
     if case:
 
-        with st.spinner("Finding case law..."):
+        with st.spinner("Searching case law..."):
 
             system_prompt = """
 Provide:
@@ -230,9 +225,9 @@ Short summary
 
             st.write(response.choices[0].message.content)
 
-# -------------------------------
+# -------------------------
 # EXAM MODE
-# -------------------------------
+# -------------------------
 
 elif mode == "Exam Mode":
 
